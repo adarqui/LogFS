@@ -21,11 +21,11 @@ library
    System.LogFS.Run
    System.LogFS.Internal
 --   System.LogFS.Exception
-  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers ==0.4.1.*, unix ==2.7.0.1, HFuse, devutils
+  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers ==0.4.1.*, unix ==2.7.0.1, zeromq4-haskell ==0.6, mtl, HFuse, devutils
   GHC-Options:         -O3 -Wall
   hs-source-dirs:      src
 
 executable "logfs"
   main-is:             LogFS.hs
-  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers == 0.4.1.*, HFuse, LogFS, devutils
+  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers == 0.4.1.*, zeromq4-haskell ==0.6, mtl, HFuse, LogFS, devutils
   GHC-Options:         -O3 -Wall -threaded -rtsopts

@@ -14,6 +14,12 @@ import System.Posix.IO
 
 import System.Fuse
 
+
+data Packet = Packet {
+ _path :: FilePath,
+ _payload :: B.ByteString
+} deriving (Show)
+
 type FileName = String
 
 type HT = ()
