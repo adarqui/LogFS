@@ -1,0 +1,7 @@
+pkg/
+dev/
+dist/
+vendor/
+logfs-hs
+.cabal-sandbox
+cabal.sandbox.config
