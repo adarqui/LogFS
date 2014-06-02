@@ -17,3 +17,14 @@ installation:
  cabal sandbox init
  cabal-meta install
  ./.cabal-sandbox/bin/logfs ...
+
+
+big todo;
+ logfs
+  backends: local file, raw {tcp, udp, unix} socket, redis {pub/sub, enqueue}, zmq pub/sub
+ logfs-cli
+  backends: same as logfs
+ logfs-srv
+  backends (communication): same as logfs
+  backends (store): local file, mysql, postgres, mongodb, web serv + web socket
+
