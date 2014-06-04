@@ -24,7 +24,6 @@ import System.Posix.IO
 import System.Fuse
  (FileStat(..), EntryType(..), FuseContext(..), FuseOperations(..), FileSystemStats(..), SyncType, OpenMode, defaultFuseOps, fuseCtxUserID, fuseCtxGroupID, fuseRun, unionFileModes, eOK, getFuseContext, defaultFuseOps)
 
-
 data Packet = Packet {
  _path :: FilePath,
  _payload :: B.ByteString
@@ -36,8 +35,8 @@ type HT = ()
 logString :: B.ByteString
 logString = B.pack ""
 
-runLogFS :: E.Exception e => String -> [String] -> (Packet -> IO ()) -> (e -> IO Errno) -> IO ()
-runLogFS prog argv f handler = do
+runLogFS :: E.Exception e => String -> [String] -> (Packet -> IO ()) -> (String -> Bool) -> (e -> IO Errno) -> IO ()
+runLogFS prog argv f dirFilter handler = do
  let
      logFSOps :: FuseOperations HT
      logFSOps =
@@ -70,12 +69,11 @@ runLogFS prog argv f handler = do
       }
 
      logGetFileStat :: FilePath -> IO (Either Errno FileStat)
-     logGetFileStat "/" = do
+     logGetFileStat dir = do
       ctx <- getFuseContext
-      return $ Right $ dirStat ctx
-     logGetFileStat _ = do
-      ctx <- getFuseContext
-      return $ Right $ fileStat ctx
+      case (dirFilter dir) of
+       True -> return $ Right $ dirStat ctx
+       _ -> return $ Right $ fileStat ctx
 
      logAccess :: FilePath -> Int -> IO Errno
      logAccess _ _ = return eOK

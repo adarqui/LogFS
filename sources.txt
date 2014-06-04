@@ -1,2 +1,3 @@
 ./
 https://github.com/adarqui/hfuse
+https://github.com/adarqui/perfecthash
