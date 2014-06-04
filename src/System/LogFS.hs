@@ -1,5 +1,6 @@
 module System.LogFS (
- runLogFS
+ runLogFS,
+ Packet(..)
 ) where
 
 import System.LogFS.Internal

@@ -1,18 +1,28 @@
 module System.LogFS.Internal (
- runLogFS
+ runLogFS,
+ Packet(..)
 ) where
 
 import qualified Data.ByteString.Char8 as B
-import Control.Concurrent (forkIO)
-import Control.Concurrent.MVar (MVar, newEmptyMVar, takeMVar, putMVar)
-import Control.Monad (forever)
-import qualified Control.Exception as E (Exception)
+ (ByteString, pack, length, empty)
+
+import qualified Control.Exception as E
+ (Exception)
+
 import System.Posix.Files
+ (ownerWriteMode, ownerReadMode, ownerExecuteMode, groupWriteMode, groupReadMode, groupExecuteMode, otherWriteMode, otherReadMode, otherExecuteMode)
+
 import System.Posix.Types
+ (FileOffset, ByteCount, FileMode)
+
 import Foreign.C.Error
+ (Errno)
+
 import System.Posix.IO
+ (OpenFileFlags)
 
 import System.Fuse
+ (FileStat(..), EntryType(..), FuseContext(..), FuseOperations(..), FileSystemStats(..), SyncType, OpenMode, defaultFuseOps, fuseCtxUserID, fuseCtxGroupID, fuseRun, unionFileModes, eOK, getFuseContext, defaultFuseOps)
 
 
 data Packet = Packet {
@@ -20,17 +30,13 @@ data Packet = Packet {
  _payload :: B.ByteString
 } deriving (Show)
 
-type FileName = String
-
 type HT = ()
 
+
 logString :: B.ByteString
-logString = B.pack "log!\n"
+logString = B.pack ""
 
-logPath :: FilePath
-logPath = "/log"
-
-runLogFS :: E.Exception e => String -> [String] -> (String -> IO ()) -> (e -> IO Errno) -> IO ()
+runLogFS :: E.Exception e => String -> [String] -> (Packet -> IO ()) -> (e -> IO Errno) -> IO ()
 runLogFS prog argv f handler = do
  let
      logFSOps :: FuseOperations HT
@@ -52,8 +58,7 @@ runLogFS prog argv f handler = do
      }
 
      logGetFileSystemStats :: String -> IO (Either Errno FileSystemStats)
-     logGetFileSystemStats str = do
-      f "GetFileSystemStats"
+     logGetFileSystemStats _ = do
       return $ Right $ FileSystemStats
        { fsStatBlockSize       = 512
        , fsStatBlockCount      = 1
@@ -66,66 +71,57 @@ runLogFS prog argv f handler = do
 
      logGetFileStat :: FilePath -> IO (Either Errno FileStat)
      logGetFileStat "/" = do
-      f "GetFileStat(1)"
       ctx <- getFuseContext
       return $ Right $ dirStat ctx
      logGetFileStat _ = do
-      f "GetFileStat(2)"
       ctx <- getFuseContext
       return $ Right $ fileStat ctx
 
      logAccess :: FilePath -> Int -> IO Errno
-     logAccess _ _ = do
-      f "Access"
-      return eOK
+     logAccess _ _ = return eOK
 
      logCreateDirectory :: FilePath -> FileMode -> IO Errno
-     logCreateDirectory _ _ = f "CreateDirectory" >> return eOK
+     logCreateDirectory _ _ = return eOK
 
      logOpenDirectory :: FilePath -> IO Errno
-     logOpenDirectory _ = f "OpenDirectory" >> return eOK
+     logOpenDirectory _ = return eOK
 
      logReadDirectory :: FilePath -> IO (Either Errno [(FilePath, FileStat)])
      logReadDirectory _ = do
-      f "ReadDirectory"
       ctx <- getFuseContext
       return $ Right
        [(".", dirStat ctx)
        ,("..", dirStat ctx)
-       ,(logName, fileStat ctx)
        ]
-      where (_:logName) = logPath
 
      logSetFileSize :: FilePath -> FileOffset -> IO Errno
-     logSetFileSize _ _ = f "SetFileSize" >> return eOK
+     logSetFileSize _ _ = return eOK
 
      logOpen :: FilePath -> OpenMode -> OpenFileFlags -> IO (Either Errno HT)
-     logOpen path mode flags = f "Open" >> return (Right ())
+     logOpen _ _ _ = return (Right ())
 
      logRead :: FilePath -> HT -> ByteCount -> FileOffset -> IO (Either Errno B.ByteString)
-     logRead path _ byteCount offset = do
-      f "Read"
-      return $ Right $ B.take (fromIntegral byteCount) $ B.drop (fromIntegral offset) logString
+     logRead _ _ _ _ = return $ Right $ B.empty
 
      logWrite :: FilePath -> HT -> B.ByteString -> FileOffset -> IO (Either Errno ByteCount)
-     logWrite path _ byteString offset = do
-      f "Write"
-      putStrLn $ show byteString
+     logWrite path _ byteString _ = do
+      f $ Packet { _path = path, _payload = byteString }
       return $ Right $ fromIntegral $ B.length byteString
 
      logFlush :: FilePath -> HT -> IO Errno
-     logFlush _ _ = f "Flush" >> return eOK
+     logFlush _ _ = return eOK
 
      logRelease :: FilePath -> HT -> IO ()
-     logRelease _ _ = f "Release" >> return ()
+     logRelease _ _ = return ()
 
      logSynchronizeFile :: FilePath -> SyncType -> IO Errno
-     logSynchronizeFile _ _ = f "SynchronizeFile" >> return eOK
+     logSynchronizeFile _ _ = return eOK
 
  fuseRun prog argv logFSOps (\e -> print e >> handler e)
 
 
 
+dirStat :: FuseContext -> FileStat
 dirStat ctx = FileStat {
  statEntryType = Directory
  , statFileMode = foldr1 unionFileModes
@@ -151,6 +147,7 @@ dirStat ctx = FileStat {
  }
 
 
+fileStat :: FuseContext -> FileStat
 fileStat ctx = FileStat
  { statEntryType = RegularFile
  , statFileMode = foldr1 unionFileModes

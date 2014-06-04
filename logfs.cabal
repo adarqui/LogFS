@@ -1,7 +1,7 @@
 name:                LogFS
 version:             0.1.0.0
-synopsis:            Centralized logging via logfs
-description:         Centralized logging via logfs
+synopsis:            Centralized logging via logfs (library)
+description:         Centralized logging via logfs (library)
 homepage:            https://github.com/adarqui/LogFS-hs
 license:             GPL-3
 license-file:        LICENSE
@@ -18,14 +18,12 @@ source-repository head
 library
   exposed-modules:
    System.LogFS
-   System.LogFS.Run
    System.LogFS.Internal
---   System.LogFS.Exception
-  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers ==0.4.1.*, unix ==2.7.0.1, zeromq4-haskell ==0.6, mtl, HFuse, devutils
-  GHC-Options:         -O3 -Wall
+  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, bytestring, transformers ==0.4.1.*, unix ==2.7.0.1, mtl, HFuse
+  GHC-Options:         -O2 -Wall
   hs-source-dirs:      src
 
-executable "logfs"
-  main-is:             LogFS.hs
-  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers == 0.4.1.*, zeromq4-haskell ==0.6, mtl, HFuse, LogFS, devutils
-  GHC-Options:         -O3 -Wall -threaded -rtsopts
+executable "simple"
+  main-is:             examples/simple.hs
+  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers == 0.4.1.*, mtl, base64-bytestring ==1.0.0.1, HFuse, LogFS
+  GHC-Options:         -O2 -Wall -threaded -rtsopts

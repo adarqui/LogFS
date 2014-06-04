@@ -1,7 +1,8 @@
 module Main where
 
-import System.LogFS (runLogFS)
+import System.LogFS (runLogFS, Packet(..))
 import System.LogFS.Run (runBackend)
+
 import System.Fuse (fuseMain, defaultExceptionHandler)
 import System.DevUtils.Data.List (split)
 import System.Environment (getArgs)
@@ -20,9 +21,9 @@ launch logfs fuse = do
  ch <- runBackend logfs
 
  let
-  backendHandler :: String -> IO ()
-  backendHandler s = do
-   writeChan ch s
+  backendHandler :: Packet -> IO ()
+  backendHandler pkt = do
+   writeChan ch pkt
 
  runLogFS "logfs" fuse backendHandler defaultExceptionHandler
 
