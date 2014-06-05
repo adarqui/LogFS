@@ -20,20 +20,10 @@ usage = do
 genList :: String -> [String]
 genList s = read s :: [String]
 
-runBackendStdout' :: Integer -> Chan Packet -> IO ()
-runBackendStdout' n ch = do
- nch <- dupChan ch
- forever $ runBackendStdout n nch
-
 runBackendStdout :: Integer -> Chan Packet -> IO ()
 runBackendStdout n ch = do
  pkt <- readChan ch
  putStrLn $ "got("++show n++"): " ++ show pkt
-
-runBackendFile' :: String -> Chan Packet -> IO ()
-runBackendFile' file ch = do
- nch <- dupChan ch
- forever $ runBackendFile file nch
 
 runBackendFile :: String -> Chan Packet -> IO ()
 runBackendFile file ch = do
@@ -43,8 +33,8 @@ runBackendFile file ch = do
 launch :: Integer -> [String] -> [String] -> IO ()
 launch max' suffixes argv = do
  ch <- newChan
- mapM_ (\n -> forkIO $ runBackendStdout' n ch) [1..max']
- mapM_ (\n -> forkIO $ runBackendFile' ("/tmp/logfs."++show n++".log") ch) [1..max']
+ mapM_ (\n -> forkIO $ dupChan ch >>= \nch -> forever $ runBackendStdout n nch) [1..max']
+ mapM_ (\n -> forkIO $ dupChan ch >>= \nch -> forever $ runBackendFile ("/tmp/logfs."++show n++".log") nch) [1..max']
 
  let
   hash :: Hash.PerfectHash Bool
