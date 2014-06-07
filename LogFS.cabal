@@ -2,7 +2,7 @@ name:                LogFS
 version:             0.1.0.0
 synopsis:            Centralized logging via hooks into a fuse filesystem (library)
 description:         Centralized logging via hooks into a fuse filesystem (library)
-homepage:            https://github.com/adarqui/LogFS-hs
+homepage:            https://github.com/adarqui/LogFS
 license:             GPL-3
 license-file:        LICENSE
 author:              adarqui
@@ -13,7 +13,7 @@ cabal-version:       >=1.8
 
 source-repository head
  type: git
- location: https://github.com/adarqui/LogFS-hs
+ location: https://github.com/adarqui/LogFS
 
 library
   exposed-modules:
@@ -25,5 +25,5 @@ library
 
 executable "simple"
   main-is:             examples/simple.hs
-  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, hedis ==0.6.5, bytestring, transformers == 0.4.1.*, mtl, base64-bytestring ==1.0.0.1, system-filepath, HFuse, LogFS, PerfectHash
+  build-depends:       base ==4.7.*, HUnit ==1.2.5.*, bytestring, transformers == 0.4.1.*, mtl, base64-bytestring ==1.0.0.1, system-filepath, HFuse, LogFS, PerfectHash
   GHC-Options:         -O2 -Wall -threaded -rtsopts
